@@ -1,6 +1,3 @@
 Registro de Writes - Leader
 Term 0: Prueba 1
-1	Term 0	Prueba 1
-2	Term 0	Prueba 1
-1	Term 0	holi
-1	Term 0	alo
+1	Ejemplo 1

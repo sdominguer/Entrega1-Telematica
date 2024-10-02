@@ -6,7 +6,6 @@ import os
 
 class LeaderService(raft_pb2_grpc.RaftServiceServicer):
     def __init__(self, follower_addresses):
-        self.term = 0
         self.log = []
         self.last_id = 0  # Mantener un contador de IDs
         self.log_file = "leader.txt"
@@ -21,17 +20,14 @@ class LeaderService(raft_pb2_grpc.RaftServiceServicer):
         # Asegurar que el archivo leader.txt existe
         if not os.path.exists(self.log_file):
             with open(self.log_file, "w") as f:
-                f.write("ID\tTerm\tEntrada\n")
+                f.write("ID\tEntrada\n")
 
     def AppendEntries(self, request, context):
-        if request.term < self.term:
-            return raft_pb2.AppendEntriesResponse(term=self.term, success=False)
-        
         # Registrar las entradas en el log con un ID único
         response_entries = []
         for entry in request.entries:
             self.last_id += 1
-            log_entry = f"{self.last_id}\tTerm {self.term}\t{entry}\n"
+            log_entry = f"{self.last_id}\t{entry}\n"
             with open(self.log_file, "a") as f:
                 f.write(log_entry)
             response_entries.append(f"ID {self.last_id}: {entry}")
@@ -40,11 +36,11 @@ class LeaderService(raft_pb2_grpc.RaftServiceServicer):
         self.log.extend(response_entries)
 
         # Enviar las entradas a todos los followers
-        append_request = raft_pb2.AppendEntriesRequest(entries=request.entries, term=self.term)
+        append_request = raft_pb2.AppendEntriesRequest(entries=request.entries)
         for stub in self.follower_stubs:
             stub.AppendEntries(append_request)
 
-        return raft_pb2.AppendEntriesResponse(term=self.term, success=True)
+        return raft_pb2.AppendEntriesResponse(success=True)
 
 def serve():
     port = 50052
