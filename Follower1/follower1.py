@@ -97,6 +97,12 @@ class FollowerService(raft_pb2_grpc.RaftServiceServicer):
     def send_heartbeat(self):
         """Envía latidos del corazón a los demás followers después de ser elegido líder."""
         while self.is_leader:
+            # Si el líder original envía un latido, este follower debe volver a ser follower
+            if self.leader_alive:
+                print("El líder original ha regresado. Volviendo al estado de follower.")
+                self.is_leader = False
+                return  # Salir de la función para dejar de enviar latidos
+
             print("Enviando latido del corazón como líder.")
             heartbeat_request = raft_pb2.AppendEntriesRequest(entries=[])
             for stub in self.peer_stubs:
@@ -105,6 +111,7 @@ class FollowerService(raft_pb2_grpc.RaftServiceServicer):
                 except grpc.RpcError as e:
                     print(f"Error al enviar latido del corazón: {e}")
             time.sleep(2)  # Enviar latidos cada 2 segundos
+
 
     def GetState(self, request, context):
         """Muestra el estado del follower."""
