@@ -40,6 +40,8 @@ class ProxyService(proxy_pb2_grpc.ProxyServiceServicer):
 
         if self.leader_stub:
             append_request = raft_pb2.AppendEntriesRequest(entries=[request.data])
+            print(f"Enviando solicitud de escritura (write) al líder en {self.leader_address}")  # Imprimir la solicitud
+
             try:
                 leader_response = self.leader_stub.AppendEntries(append_request)
                 if leader_response.success:
@@ -56,7 +58,9 @@ class ProxyService(proxy_pb2_grpc.ProxyServiceServicer):
     def Read(self, request, context):
         """Redirigir lectura a uno de los followers"""
         # Aquí puedes implementar balanceo de carga o seleccionar un follower al azar
-        follower_stub = self.follower_stubs[0]
+        follower_stub = self.follower_stubs[0]  # Por simplicidad, siempre se elige el primer follower
+        print(f"Enviando solicitud de lectura (read) al Follower1 en {self.follower_addresses[0]}")  # Imprimir la solicitud
+
         try:
             response = follower_stub.GetState(raft_pb2.GetStateRequest())
             return proxy_pb2.ReadResponse(data=response.state)
