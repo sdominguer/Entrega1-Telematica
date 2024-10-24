@@ -41,7 +41,7 @@ def menu():
     return input("Opción: ")
 
 if __name__ == "__main__":
-    client = Client('localhost:50051')
+    client = Client('172.31.45.74:50051')
 
     while True:
         opcion = menu()
